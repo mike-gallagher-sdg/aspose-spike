@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Pdf xmlns="Aspose.Pdf">
+
+	<Section PageWidth="8.5inch" PageHeight="11inch" BackgroundColor="yellow">
+		<Header>
+			<Text MarginTop=".75inch">
+				<Segment>Header Text</Segment>
+			</Text>
+		</Header>
+		<Text MarginTop=".75inch">
+			<Segment>Section Text</Segment>
+		</Text>
+	</Section>
+</Pdf>
