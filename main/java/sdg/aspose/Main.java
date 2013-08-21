@@ -1,6 +1,12 @@
 package sdg.aspose;
 
+import java.io.File;
+import java.io.IOException;
+
 import aspose.pdf.Color;
+import aspose.pdf.Graph;
+import aspose.pdf.HeaderFooter;
+import aspose.pdf.Line;
 import aspose.pdf.MarginInfo;
 import aspose.pdf.PageSize;
 import aspose.pdf.Pdf;
@@ -17,11 +23,23 @@ public class Main {
     public static final float PAGE_BOTTOM_MARGIN = .5f * POINTS_PER_INCH;
     public static final float PAGE_HEIGHT = 11f * POINTS_PER_INCH;
     
+    public static final String ACROBAT_READER_EXE = "C:\\Program Files (x86)\\Adobe\\Reader 10.0\\Reader\\AcroRd32.exe";
     
-    public static void main(String[] args) {
+    // #1F69AA => 31, 105, 170
+    public static final Color HEADER_COLOR = new Color((short)31, (short)105, (short)170);
+    public static final String HEADER_FONT_NAME = "Arial Bold";
+    public static final float HEADER_FONT_SIZE = 14f;
+    
+    
+    public static void main(String[] args) throws IOException {
 	
 	Main main = new Main();
-	main.createPdf("c:/temp/spike.pdf");
+	File generatedPdf = File.createTempFile("spike-", ".pdf");
+	main.createPdf(generatedPdf.getCanonicalPath());
+	
+	String cmd = String.format("\"%s\" %s", ACROBAT_READER_EXE, generatedPdf.getCanonicalFile());
+	System.out.println(String.format("Executing [%s]", cmd));
+	Runtime.getRuntime().exec(cmd);
     }
 
     public void createPdf(String filename) {
@@ -29,6 +47,28 @@ public class Main {
 	Pdf pdf = new Pdf();
 	Section section = pdf.getSections().add();
 	
+	setPageProperties(section);
+	setPageHeader(section, "Submittal");
+	
+	pdf.save(filename);
+	
+	System.out.println(String.format("Created PDF [%s]", filename));
+    }
+
+    private void setPageHeader(Section section, String headerText) {
+	TextInfo textInfo = new TextInfo();
+	textInfo.setColor(HEADER_COLOR);
+	textInfo.setFontName(HEADER_FONT_NAME);
+	textInfo.setFontSize(HEADER_FONT_SIZE);
+	
+	Text text = new Text(headerText);
+	text.setTextInfo(textInfo);
+	section.getParagraphs().add(text);
+	
+	section.getParagraphs().add(createHorizontalRule(section, HEADER_COLOR));
+    }
+
+    private void setPageProperties(Section section) {
 	section.getPageInfo().setPageWidth(PageSize.LetterWidth);
 	section.getPageInfo().setPageHeight(PageSize.LetterHeight);
 	
@@ -38,25 +78,25 @@ public class Main {
 	marginInfo.setRight(PAGE_RIGHT_MARGIN);
 	marginInfo.setBottom(PAGE_BOTTOM_MARGIN);
 	section.getPageInfo().setMargin(marginInfo);
+    }
+    
+    protected Graph createHorizontalRule(Section section, Color color) {
+	float graphWidth = 500;
+	float graphHeight = 1;
+	Graph graph = new Graph(section, graphWidth, graphHeight);
 	
-	TextInfo textInfo = new TextInfo();
-	// #1F69AA => 31, 105, 170
-	textInfo.setColor(new Color((short)31, (short)105, (short)170));
+	float lineStartX = 0;
+	float lineStartY = 0;
+	float lineEndX = 500;
+	float lineEndY = 0;
 	
-	textInfo.setFontName("Arial Bold");
-	textInfo.setFontSize(14f);
+	float[] linePositions = new float[]{lineStartX, lineStartY, lineEndX, lineEndY}; 
+	Line line = new Line(graph, linePositions); 
+	line.getGraphInfo().setColor(color); 
 	
-	Text text = new Text("Submittal");
-	text.setTextInfo(textInfo);
-	
-	section.getParagraphs().add(text);
-	pdf.save(filename);
-	
-	System.out.println("top: " + PAGE_TOP_MARGIN);
-	System.out.println("left: " + PAGE_LEFT_MARGIN);
-	System.out.println("right: " + PAGE_RIGHT_MARGIN);
-	System.out.println("bottom: " + PAGE_BOTTOM_MARGIN);
-	System.out.println(String.format("Created PDF [%s]", filename));
+	graph.getShapes().add(line);
+
+	return graph;
     }
 
 }
